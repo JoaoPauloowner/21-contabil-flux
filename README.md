@@ -56,6 +56,7 @@ Integrações profundas com ERPs contábeis, envio automático de obrigações, 
 
 ## Estrutura da documentação
 
+- [`docs/EXECUTIVE_SUMMARY.md`](docs/EXECUTIVE_SUMMARY.md): resumo comercial para apresentação a escritórios parceiros.
 - [`ROADMAP.md`](ROADMAP.md): funcionalidades do MVP, preparação arquitetural e roadmap futuro.
 - [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md): requisitos funcionais, personas e critérios de aceite.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): arquitetura lógica, módulos, decisões e fluxos.
