@@ -1,14 +1,123 @@
-import type { AccountingRequest, CreateRequestInput } from "@/server/domain/request";
+import { db, ensureDatabaseInitialized } from "./db";
+import { requests, requestMessages, tasks, type requests as RequestsTable } from "./db/schema";
+import { eq, and, isNull, desc } from "drizzle-orm";
+import type { AccountingRequest, CreateRequestInput, RequestStatus } from "@/server/domain/request";
 
-const seed: AccountingRequest[] = [
-  { id: "req_1", organizationId: "org_demo", subject: "Documentos do fechamento mensal", description: "Solicitar relatório de vendas e comprovantes.", clientName: "Empresa ABC Ltda.", department: "fiscal", priority: "urgent", status: "waiting_client", assignee: "Ana Souza", dueAt: "2026-09-20", createdAt: "2026-09-15T10:00:00Z", tasks: [{ id: "task_1", title: "Enviar cobrança de documentos", status: "in_progress", assignee: "Ana Souza", dueAt: "2026-09-18" }] },
-  { id: "req_2", organizationId: "org_demo", subject: "Dúvida sobre folha de pagamento", description: "Cliente pediu esclarecimento sobre a folha de agosto.", clientName: "Empresa XYZ Serviços", department: "pessoal", priority: "high", status: "in_progress", assignee: "Carlos Lima", dueAt: "2026-09-18", createdAt: "2026-09-16T08:00:00Z", tasks: [] },
-  { id: "req_3", organizationId: "org_demo", subject: "Alteração cadastral", description: "Atualizar endereço da empresa.", clientName: "Loja Central Ltda.", department: "societario", priority: "medium", status: "open", assignee: null, dueAt: "2026-09-22", createdAt: "2026-09-16T07:00:00Z", tasks: [] }
-];
+export class DrizzleRequestRepository {
+  async list(organizationId: string, filters?: { status?: string; department?: string; priority?: string }) {
+    await ensureDatabaseInitialized();
+    const query = db
+      .select()
+      .from(requests)
+      .where(and(eq(requests.organizationId, organizationId), isNull(requests.deletedAt)))
+      .orderBy(desc(requests.createdAt));
 
-export class InMemoryRequestRepository {
-  private static requests = [...seed];
-  list(organizationId: string) { return InMemoryRequestRepository.requests.filter((item) => item.organizationId === organizationId); }
-  getById(organizationId: string, id: string) { return InMemoryRequestRepository.requests.find((item) => item.organizationId === organizationId && item.id === id) ?? null; }
-  create(organizationId: string, input: CreateRequestInput): AccountingRequest { const request: AccountingRequest = { ...input, id: `req_${Date.now()}`, organizationId, createdAt: new Date().toISOString(), status: input.status ?? "open", tasks: [] }; InMemoryRequestRepository.requests.unshift(request); return request; }
+    const rows = await query;
+    return rows.filter((r) => {
+      if (filters?.status && r.status !== filters.status) return false;
+      if (filters?.department && r.department !== filters.department) return false;
+      if (filters?.priority && r.priority !== filters.priority) return false;
+      return true;
+    });
+  }
+
+  async getById(organizationId: string, id: string) {
+    await ensureDatabaseInitialized();
+    const [request] = await db
+      .select()
+      .from(requests)
+      .where(and(eq(requests.organizationId, organizationId), eq(requests.id, id), isNull(requests.deletedAt)));
+
+    if (!request) return null;
+
+    // Busca tarefas vinculadas
+    const relatedTasks = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.organizationId, organizationId), eq(tasks.requestId, id)));
+
+    // Busca mensagens
+    const messages = await db
+      .select()
+      .from(requestMessages)
+      .where(and(eq(requestMessages.organizationId, organizationId), eq(requestMessages.requestId, id)))
+      .orderBy(requestMessages.createdAt);
+
+    return {
+      ...request,
+      tasks: relatedTasks,
+      messages,
+    };
+  }
+
+  async create(
+    organizationId: string,
+    input: CreateRequestInput,
+    createdBy: string
+  ): Promise<typeof requests.$inferSelect> {
+    await ensureDatabaseInitialized();
+    const id = `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const now = new Date().toISOString();
+
+    const newRequest = {
+      id,
+      organizationId,
+      clientId: null,
+      clientName: input.clientName,
+      subject: input.subject,
+      description: input.description,
+      department: input.department,
+      priority: input.priority ?? "medium",
+      status: input.status ?? "open",
+      assigneeId: null,
+      assigneeName: input.assignee ?? null,
+      dueAt: input.dueAt,
+      resolvedAt: null,
+      createdBy,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+
+    await db.insert(requests).values(newRequest);
+    return newRequest;
+  }
+
+  async updateStatus(organizationId: string, id: string, status: RequestStatus) {
+    await ensureDatabaseInitialized();
+    const now = new Date().toISOString();
+    await db
+      .update(requests)
+      .set({
+        status,
+        updatedAt: now,
+        resolvedAt: status === "resolved" ? now : null,
+      })
+      .where(and(eq(requests.organizationId, organizationId), eq(requests.id, id)));
+  }
+
+  async addMessage(
+    organizationId: string,
+    requestId: string,
+    authorName: string,
+    authorUserId: string | null,
+    body: string,
+    isInternal = true
+  ) {
+    await ensureDatabaseInitialized();
+    const id = `msg_${Date.now()}`;
+    const now = new Date().toISOString();
+
+    await db.insert(requestMessages).values({
+      id,
+      organizationId,
+      requestId,
+      authorName,
+      authorUserId,
+      source: isInternal ? "internal" : "client",
+      body,
+      isInternal,
+      createdAt: now,
+    });
+  }
 }
