@@ -14,11 +14,19 @@ Não construa um chatbot genérico. Construa uma ferramenta operacional com foco
 
 ## Regra de execução
 
-Trabalhe por fases e mantenha o projeto executável ao final de cada fase. Antes de codificar uma fase, leia os arquivos `README.md`, `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN_SYSTEM.md`, `docs/SECURITY.md`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/UX_FLOWS.md` e `docs/IMPLEMENTATION_PLAN.md`, caso estejam disponíveis no repositório.
+Trabalhe por fases e mantenha o projeto executável ao final de cada fase. Antes de codificar uma fase, leia os arquivos `README.md`, `ROADMAP.md`, `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN_SYSTEM.md`, `docs/SECURITY.md`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/UX_FLOWS.md` e `docs/IMPLEMENTATION_PLAN.md`, caso estejam disponíveis no repositório.
 
 Não invente integrações, credenciais ou requisitos fora desses documentos. Quando houver dúvida de baixo risco, escolha a opção simples e documente-a. Pare e peça esclarecimento somente se a decisão puder comprometer isolamento de dados, privacidade, modelo de dados, custo significativo ou intenção do produto.
 
 Depois de cada fase, execute lint, typecheck e os testes relevantes. Não declare uma fase concluída se o projeto não iniciar localmente.
+
+## Roadmap e funcionalidades futuras
+
+`ROADMAP.md` é a fonte oficial para distinguir o MVP de funcionalidades futuras. O produto terá evolução planejada para portal do cliente, notificações, integrações com sistemas contábeis, e-mail, WhatsApp Business Platform oficial, relatórios gerenciais, automações com aprovação, folha, assinatura digital, cobrança e outros domínios especializados.
+
+Não implemente essas funcionalidades futuras durante o MVP apenas porque elas aparecem na visão de produto. Quando necessário, prepare interfaces, adapters, eventos e pontos de extensão simples. Não crie telas falsas, botões sem funcionamento ou integrações simuladas apresentadas como prontas. Só implemente uma funcionalidade marcada como futura quando o usuário solicitar explicitamente ou quando `ROADMAP.md` for atualizado para movê-la ao MVP.
+
+Antes de qualquer nova implementação, classifique a solicitação como: MVP, preparação arquitetural, funcionalidade futura ou fora do produto. Se for futura, registre a decisão e preserve o escopo atual.
 
 ## Stack obrigatória
 
