@@ -71,15 +71,19 @@ export const requests = sqliteTable("requests", {
   deletedAt: text("deleted_at"),
 });
 
-// 6. Mensagens e histórico da solicitação
+// 6. Mensagens e histórico da solicitação (Texto, Áudio, Imagens e PDFs)
 export const requestMessages = sqliteTable("request_messages", {
   id: text("id").primaryKey(),
   organizationId: text("organization_id").notNull().references(() => organizations.id),
   requestId: text("request_id").notNull().references(() => requests.id),
   authorName: text("author_name").notNull(),
   authorUserId: text("author_user_id"),
-  source: text("source").notNull().default("internal"), // internal | client | ai | system
+  source: text("source").notNull().default("internal"), // internal | client | ai | system | whatsapp
   body: text("body").notNull(),
+  mediaType: text("media_type", { enum: ["text", "audio", "image", "document"] }).notNull().default("text"),
+  mediaUrl: text("media_url"),
+  mediaName: text("media_name"),
+  transcription: text("transcription"),
   isInternal: integer("is_internal", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull(),
 });

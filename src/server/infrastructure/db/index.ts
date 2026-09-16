@@ -103,10 +103,20 @@ export async function ensureDatabaseInitialized() {
       author_user_id TEXT,
       source TEXT NOT NULL DEFAULT 'internal',
       body TEXT NOT NULL,
+      media_type TEXT NOT NULL DEFAULT 'text',
+      media_url TEXT,
+      media_name TEXT,
+      transcription TEXT,
       is_internal INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL
     );
   `);
+
+  // Migrações automáticas para colunas de mídia em bancos existentes
+  try { await client.execute(`ALTER TABLE request_messages ADD COLUMN media_type TEXT NOT NULL DEFAULT 'text'`); } catch {}
+  try { await client.execute(`ALTER TABLE request_messages ADD COLUMN media_url TEXT`); } catch {}
+  try { await client.execute(`ALTER TABLE request_messages ADD COLUMN media_name TEXT`); } catch {}
+  try { await client.execute(`ALTER TABLE request_messages ADD COLUMN transcription TEXT`); } catch {}
 
   await client.execute(`
     CREATE TABLE IF NOT EXISTS tasks (

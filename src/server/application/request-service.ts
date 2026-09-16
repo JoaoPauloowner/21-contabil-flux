@@ -46,7 +46,18 @@ export async function updateRequestStatus(id: string, status: RequestStatus) {
   await recordAudit(context, "request.status_updated", "request", id, { status });
 }
 
-export async function addRequestMessage(id: string, body: string, isInternal = true) {
+export async function addRequestMessage(
+  id: string,
+  body: string,
+  isInternal = true,
+  media?: {
+    mediaType?: "text" | "audio" | "image" | "document";
+    mediaUrl?: string | null;
+    mediaName?: string | null;
+    transcription?: string | null;
+    source?: string;
+  }
+) {
   const context = await getSessionContext();
   assertCanWrite(context);
   await repository.addMessage(
@@ -55,7 +66,9 @@ export async function addRequestMessage(id: string, body: string, isInternal = t
     context.userName,
     context.userId,
     body,
-    isInternal
+    isInternal,
+    media
   );
-  await recordAudit(context, "request.message_added", "request", id, { isInternal });
+  await recordAudit(context, "request.message_added", "request", id, { isInternal, mediaType: media?.mediaType });
 }
+

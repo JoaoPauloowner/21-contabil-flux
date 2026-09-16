@@ -102,10 +102,17 @@ export class DrizzleRequestRepository {
     authorName: string,
     authorUserId: string | null,
     body: string,
-    isInternal = true
+    isInternal = true,
+    media?: {
+      mediaType?: "text" | "audio" | "image" | "document";
+      mediaUrl?: string | null;
+      mediaName?: string | null;
+      transcription?: string | null;
+      source?: string;
+    }
   ) {
     await ensureDatabaseInitialized();
-    const id = `msg_${Date.now()}`;
+    const id = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     const now = new Date().toISOString();
 
     await db.insert(requestMessages).values({
@@ -114,8 +121,12 @@ export class DrizzleRequestRepository {
       requestId,
       authorName,
       authorUserId,
-      source: isInternal ? "internal" : "client",
+      source: media?.source || (isInternal ? "internal" : "client"),
       body,
+      mediaType: media?.mediaType || "text",
+      mediaUrl: media?.mediaUrl || null,
+      mediaName: media?.mediaName || null,
+      transcription: media?.transcription || null,
       isInternal,
       createdAt: now,
     });

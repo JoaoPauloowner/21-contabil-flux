@@ -17,6 +17,9 @@ import {
   Building2,
   FileText,
   User,
+  Volume2,
+  Image as ImageIcon,
+  MessageSquare,
 } from "lucide-react";
 
 type RequestDetail = {
@@ -41,7 +44,12 @@ type RequestDetail = {
   messages: Array<{
     id: string;
     authorName: string;
+    source: string;
     body: string;
+    mediaType?: "text" | "audio" | "image" | "document";
+    mediaUrl?: string | null;
+    mediaName?: string | null;
+    transcription?: string | null;
     isInternal: boolean;
     createdAt: string;
   }>;
@@ -339,15 +347,88 @@ export default function RequestDetailPage() {
 
               <div className="space-y-3">
                 {request.messages.map((msg) => (
-                  <div key={msg.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                  <div key={msg.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-800 flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-slate-500" />
-                        {msg.authorName}
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-800 flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-slate-500" />
+                          {msg.authorName}
+                        </span>
+                        {msg.source === "whatsapp" && (
+                          <span className="badge bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                            WhatsApp
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-slate-400 text-[11px]">
+                        {msg.createdAt.slice(0, 16).replace("T", " ")}
                       </span>
-                      <span className="text-slate-400 text-[11px]">{msg.createdAt.slice(0, 16).replace("T", " ")}</span>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">{msg.body}</p>
+
+                    {/* Mídia: Áudio de Voz com Player e Transcrição */}
+                    {msg.mediaType === "audio" ? (
+                      <div className="space-y-2 p-3 bg-blue-50/60 border border-blue-100 rounded-xl">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-blue-700">
+                          <Volume2 className="w-4 h-4" />
+                          <span>Mensagem de Voz Recebida</span>
+                        </div>
+                        {msg.mediaUrl ? (
+                          <audio controls src={msg.mediaUrl} className="w-full h-8" />
+                        ) : (
+                          <div className="text-xs text-slate-500 italic">Áudio processado pela central</div>
+                        )}
+                        {msg.transcription && (
+                          <div className="p-2.5 rounded-lg bg-white border border-blue-100 text-xs text-slate-700 space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" /> Transcrição Automática por IA:
+                            </p>
+                            <p className="leading-relaxed italic text-slate-800">"{msg.transcription}"</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : msg.mediaType === "image" ? (
+                      /* Mídia: Imagem / Comprovante */
+                      <div className="space-y-2 p-3 bg-white border border-slate-200 rounded-xl">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-purple-700">
+                          <ImageIcon className="w-4 h-4" />
+                          <span>Comprovante / Imagem Anexada</span>
+                        </div>
+                        {msg.mediaUrl && (
+                          <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={msg.mediaUrl}
+                              alt={msg.mediaName || "Comprovante"}
+                              className="max-h-60 rounded-lg border border-slate-200 object-contain hover:opacity-95 transition"
+                            />
+                          </a>
+                        )}
+                        <p className="text-xs text-slate-600">{msg.body}</p>
+                      </div>
+                    ) : msg.mediaType === "document" ? (
+                      /* Mídia: Documento / PDF */
+                      <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <FileText className="w-5 h-5 text-rose-600 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-slate-800">{msg.mediaName || "Documento PDF"}</p>
+                            <p className="text-[11px] text-slate-500">{msg.body}</p>
+                          </div>
+                        </div>
+                        {msg.mediaUrl && (
+                          <a
+                            href={msg.mediaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition"
+                          >
+                            Baixar / Ver
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      /* Mensagem de Texto Padrão */
+                      <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{msg.body}</p>
+                    )}
                   </div>
                 ))}
               </div>
