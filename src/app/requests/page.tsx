@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { listRequests } from "@/server/application/request-service";
+
+export default function RequestsPage() {
+  const requests = listRequests();
+  return <main className="min-h-screen p-6 md:p-10"><div className="mx-auto max-w-6xl"><Link href="/dashboard" className="text-sm font-semibold text-blue-600">← Dashboard</Link><div className="mt-6 flex items-end justify-between"><div><p className="text-sm font-semibold text-blue-600">Operação</p><h1 className="mt-1 text-3xl font-bold">Solicitações</h1><p className="mt-2 text-slate-500">Acompanhe as demandas dos seus clientes.</p></div><button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white">+ Nova solicitação</button></div><div className="card mt-8 overflow-hidden"><div className="grid grid-cols-[2fr_1.2fr_1fr_1fr_1fr] gap-4 border-b bg-slate-50 px-5 py-3 text-xs font-bold uppercase tracking-wide text-slate-500"><span>Solicitação</span><span>Cliente</span><span>Departamento</span><span>Prioridade</span><span>Status</span></div>{requests.map((item) => <Link href={`/requests/${item.id}`} key={item.id} className="grid grid-cols-[2fr_1.2fr_1fr_1fr_1fr] gap-4 border-b px-5 py-4 text-sm last:border-0 hover:bg-slate-50"><span className="font-semibold">{item.subject}</span><span className="text-slate-600">{item.clientName}</span><span className="text-slate-600">{item.department}</span><span className="font-semibold text-amber-700">{item.priority}</span><span className="text-slate-600">{item.status}</span></Link>)}</div></div></main>;
+}
